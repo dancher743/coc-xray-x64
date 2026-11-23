@@ -18,6 +18,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <IncludePath>$(xr3rdPartyDir);$(IncludePath);$(xrSdkDir)include;$(xrSdkDir)include\OpenAutomate;$(xrSdkDir)include\nvapi;$(xrSdkDir)include\dxsdk</IncludePath>
+	<LibraryPath>$(xr3rdPartyDir)luajit-2\src;$(LibraryPath)</LibraryPath>
     <OutDir>$(xrGameDir)bin_dbg\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup>

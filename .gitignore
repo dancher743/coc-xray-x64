@@ -5,6 +5,7 @@
 # exclude binaries and temporary files
 bin/
 bin_plugs/
+bin_dbg/
 intermediate/
 intermediate_plugs/
 lib/
