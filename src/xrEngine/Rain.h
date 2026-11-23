@@ -90,7 +90,11 @@ public:
 
     void Render();
     void OnFrame();
-    void InvalidateState()		{ state = stIdle; }
+	void InvalidateState()
+	{
+		state = stIdle;
+		snd_Ambient.stop();
+	}
 };
 
 #endif //RainH
