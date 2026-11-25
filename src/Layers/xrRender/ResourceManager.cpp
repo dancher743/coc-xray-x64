@@ -14,6 +14,9 @@
 #include "blenders\blender.h"
 #include "blenders\blender_recorder.h"
 
+#include <thread>
+#include <vector>
+
 //	Already defined in Texture.cpp
 void fix_texture_name(LPSTR fn);
 /*
@@ -334,56 +337,97 @@ void CResourceManager::Delete(const Shader* S)
 	Msg	("! ERROR: Failed to find complete shader");
 }
 
-xr_vector<CTexture*> tex_to_load;
+static void TextureLoading(
+    const std::vector<CTexture*>* textures,
+    size_t lowerbound,
+    size_t upperbound,
+    size_t thread_num)
+{
+    Msg("TextureLoading -> thread %llu started!",
+        static_cast<unsigned long long>(thread_num));
 
-void TextureLoading(u16 thread_num) {
-    Msg("TextureLoading -> thread %d started!", thread_num);
+    for (size_t i = lowerbound; i < upperbound; ++i)
+        (*textures)[i]->Load();
 
-    u16 upperbound = thread_num * 100;
-    u32 lowerbound = upperbound - 100;
-
-    for (size_t i = lowerbound; i < upperbound; i++) {
-        if (i < tex_to_load.size())
-            tex_to_load[i]->Load();
-        else
-            break;
-    }
-
-    Msg("TextureLoading -> thread %d finished!", thread_num);
+    Msg("TextureLoading -> thread %llu finished!",
+        static_cast<unsigned long long>(thread_num));
 }
 
 void CResourceManager::DeferredUpload()
 {
-	if (!RDEVICE.b_is_Ready) return;
-    tex_to_load.clear();
+    if (!RDEVICE.b_is_Ready)
+        return;
 
-    Msg("CResourceManager::DeferredUpload -> START, size = %d", m_textures.size());
+    const size_t texture_count = m_textures.size();
+
+    Msg("CResourceManager::DeferredUpload -> START, size = %llu",
+        static_cast<unsigned long long>(texture_count));
 
     CTimer timer;
     timer.Start();
 
-    if (m_textures.size() <= 100)
+    if (texture_count <= 100)
     {
         Msg("CResourceManager::DeferredUpload -> one thread");
-        for (map_TextureIt t = m_textures.begin(); t != m_textures.end(); t++)
+
+        for (map_TextureIt t = m_textures.begin(); t != m_textures.end(); ++t)
             t->second->Load();
-    } else {
-        u32 th_count = (m_textures.size() / 100) + 1;
-        std::thread* th_arr = new std::thread[th_count];
-        for (auto tex : m_textures)
-            tex_to_load.push_back(tex.second);
+    }
+    else
+    {
+        const size_t textures_per_thread = 100;
 
-        for (u16 i = 0; i < th_count; i++)
-            th_arr[i] = std::thread(TextureLoading, i + 1);
+        // Each DeferredUpload call owns its own immutable work list.
+        std::vector<CTexture*> textures_to_load;
+        textures_to_load.reserve(texture_count);
 
-        for (size_t i = 0; i < th_count; i++)
-            th_arr[i].join();
+        for (const auto& texture : m_textures)
+            textures_to_load.push_back(texture.second);
 
-        tex_to_load.clear();
+        const size_t thread_count =
+            texture_count / textures_per_thread +
+            (texture_count % textures_per_thread != 0 ? 1 : 0);
+
+        std::vector<std::thread> workers;
+        workers.reserve(thread_count);
+
+        try
+        {
+            for (size_t thread_index = 0; thread_index < thread_count; ++thread_index)
+            {
+                const size_t lowerbound = thread_index * textures_per_thread;
+                const size_t remaining = texture_count - lowerbound;
+                const size_t batch_size =
+                    remaining < textures_per_thread ? remaining : textures_per_thread;
+                const size_t upperbound = lowerbound + batch_size;
+
+                workers.emplace_back(
+                    TextureLoading,
+                    &textures_to_load,
+                    lowerbound,
+                    upperbound,
+                    thread_index + 1);
+            }
+        }
+        catch (...)
+        {
+            // A vector of joinable std::threads must not be destroyed.
+            // Join the workers already started before propagating the error.
+            for (std::thread& worker : workers)
+            {
+                if (worker.joinable())
+                    worker.join();
+            }
+            throw;
+        }
+
+        for (std::thread& worker : workers)
+            worker.join();
     }
 
     Msg("texture loading time: %d", timer.GetElapsed_ms());
 }
+
 /*
 void	CResourceManager::DeferredUnload	()
 {
