@@ -324,30 +324,25 @@ void _initialize_cpu_thread()
 }
 #endif
 // threading API
-#pragma pack(push,8)
-struct THREAD_NAME
-{
-    DWORD dwType;
-    LPCSTR szName;
-    DWORD dwThreadID;
-    DWORD dwFlags;
-};
 void thread_name(const char* name)
 {
-    THREAD_NAME tn;
-    tn.dwType = 0x1000;
-    tn.szName = name;
-    tn.dwThreadID = DWORD(-1);
-    tn.dwFlags = 0;
+    // The debugger thread-name exception expects four pointer-sized arguments.
+    ULONG_PTR args[4] =
+    {
+        0x1000,
+        reinterpret_cast<ULONG_PTR>(name),
+        static_cast<ULONG_PTR>(DWORD(-1)),
+        0
+    };
+
     __try
     {
-        RaiseException(0x406D1388, 0, sizeof(tn) / sizeof(DWORD), (ULONG_PTR *)&tn);
+        RaiseException(0x406D1388, 0, 4, args);
     }
-    __except (EXCEPTION_CONTINUE_EXECUTION)
+    __except (EXCEPTION_EXECUTE_HANDLER)
     {
     }
 }
-#pragma pack(pop)
 
 struct THREAD_STARTUP
 {

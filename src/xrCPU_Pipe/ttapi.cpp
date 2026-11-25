@@ -73,29 +73,24 @@ DWORD WINAPI ttapiThreadProc( LPVOID lpParameter )
 	return 0;
 }
 
-typedef struct tagTHREADNAME_INFO {
-  DWORD dwType;
-  LPCSTR szName;
-  DWORD dwThreadID;
-  DWORD dwFlags;
-} THREADNAME_INFO;
-
-void SetThreadName( DWORD dwThreadID , LPCSTR szThreadName )
+void SetThreadName(DWORD dwThreadID, LPCSTR szThreadName)
 {
-  THREADNAME_INFO info;
-  {
-    info.dwType = 0x1000;
-    info.szName = szThreadName;
-    info.dwThreadID = dwThreadID;
-    info.dwFlags = 0;
-  }
-  __try
-  {
-    RaiseException( 0x406D1388, 0, sizeof(info)/sizeof(DWORD), (ULONG_PTR*)&info );
-  }
-  __except (EXCEPTION_CONTINUE_EXECUTION)
-  {
-  }
+    // The debugger thread-name exception expects four pointer-sized arguments.
+    ULONG_PTR args[4] =
+    {
+        0x1000,
+        reinterpret_cast<ULONG_PTR>(szThreadName),
+        static_cast<ULONG_PTR>(dwThreadID),
+        0
+    };
+
+    __try
+    {
+        RaiseException(0x406D1388, 0, 4, args);
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER)
+    {
+    }
 }
 
 DWORD ttapi_Init( _processor_info* ID )
