@@ -12,3 +12,4 @@ All notable changes to this project will be documented in this file.
 - Fixed pointer-sized arguments of debugger thread-name exceptions
 - Fixed thread leak and index overflow in the Resource Manager
 - Fixed detection of AMD processors
+- Fixed library paths in the x64 configurations for R1–R4
