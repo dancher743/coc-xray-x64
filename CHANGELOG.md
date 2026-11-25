@@ -16,3 +16,4 @@ All notable changes to this project will be documented in this file.
 - Fixed handling of 64-bit region sizes and memory traversal in ptmalloc3
 - Added `size` check to fix potential unsigned wrap-around on invalid size in ptmalloc3
 - Fixed an unsafe conversion of the bit representation of a float in `ParticleEffect.cpp`
+- Fixed OpenAL source restarting after buffer processing to prevent looping audio issues

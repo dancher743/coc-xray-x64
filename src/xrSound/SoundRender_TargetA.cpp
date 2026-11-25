@@ -97,37 +97,36 @@ void	CSoundRender_TargetA::rewind			()
 
 void	CSoundRender_TargetA::update			()
 {
-	inherited::update();
+    inherited::update();
 
-	ALint			processed;
-    // Get status
-    A_CHK			(alGetSourcei(pSource, AL_BUFFERS_PROCESSED, &processed));
+    ALint processed = 0;
 
-    if (processed > 0)
-	{
-        while (processed)
-		{
-			ALuint			BufferID;
-            A_CHK			(alSourceUnqueueBuffers(pSource, 1, &BufferID));
-            fill_block		(BufferID);
-            A_CHK			(alSourceQueueBuffers(pSource, 1, &BufferID));
-            --processed;
-        }
+    // Get number of processed buffers.
+    A_CHK(alGetSourcei(pSource, AL_BUFFERS_PROCESSED, &processed));
 
-		ALint state;
-		A_CHK(alGetSourcei(pSource, AL_SOURCE_STATE, &state));
-		if (state == AL_STOPPED)
-			A_CHK(alSourcePlay(pSource));
-    }else{ 
-    	// processed == 0
-        // check play status -- if stopped then queue is not being filled fast enough
-        ALint		state;
-	    A_CHK		(alGetSourcei(pSource, AL_SOURCE_STATE, &state));
-        if (state != AL_PLAYING)
-		{
-//			Log		("Queuing underrun detected.");
-			A_CHK	(alSourcePlay(pSource));
-        }
+    // Refill all processed buffers.
+    for (ALint i = 0; i < processed; ++i)
+    {
+        ALuint bufferId = 0;
+
+        A_CHK(alSourceUnqueueBuffers(pSource, 1, &bufferId));
+
+        fill_block(bufferId);
+
+        A_CHK(alSourceQueueBuffers(pSource, 1, &bufferId));
+    }
+
+    // Check source state and queue status after refilling.
+    ALint queued = 0;
+    ALint state = AL_INITIAL;
+
+    A_CHK(alGetSourcei(pSource, AL_BUFFERS_QUEUED, &queued));
+    A_CHK(alGetSourcei(pSource, AL_SOURCE_STATE, &state));
+
+    // Restart only when there are buffers available.
+    if (queued > 0 && (state == AL_STOPPED || state == AL_INITIAL))
+    {
+        A_CHK(alSourcePlay(pSource));
     }
 }
 
