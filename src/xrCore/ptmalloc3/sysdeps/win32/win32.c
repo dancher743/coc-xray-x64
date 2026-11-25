@@ -504,7 +504,8 @@ void *mmap ( void *ptr, INTERNAL_INTPTR_T size, INTERNAL_INTPTR_T prot, INTERNAL
 		{	/* prot==PROT_NONE also appears to be a euphemism for free */
 			MEMORY_BASIC_INFORMATION mbi;
 			size_t read=0;
-			for(p=((char *)ptr)+read; read<(DWORD) size && VirtualQuery(p, &mbi, sizeof(mbi)); read+=mbi.RegionSize)
+			const size_t requested_size = (size_t)size;
+			for(p=(char *)ptr; read<requested_size && VirtualQuery(p, &mbi, sizeof(mbi)); read+=mbi.RegionSize, p+=mbi.RegionSize)
 			{
 				if(mbi.State & MEM_COMMIT)
 				{

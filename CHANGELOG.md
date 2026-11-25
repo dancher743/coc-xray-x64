@@ -13,3 +13,4 @@ All notable changes to this project will be documented in this file.
 - Fixed thread leak and index overflow in the Resource Manager
 - Fixed detection of AMD processors
 - Fixed library paths in the x64 configurations for R1–R4
+- Fixed handling of 64-bit region sizes and memory traversal in ptmalloc3
