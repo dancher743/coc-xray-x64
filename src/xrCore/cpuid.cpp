@@ -78,7 +78,7 @@ int _cpuid ( _processor_info *pinfo )
 	*reinterpret_cast<int*>(pinfo->v_name + 8) = data[0][2];
 
 	//const bool isIntel = std::strncmp(pinfo->vendor, "GenuineIntel", 12);
-	const bool isAmd = strncmp(pinfo->v_name, "AuthenticAMD", 12) != 0;
+	const bool isAmd = strncmp(pinfo->v_name, "AuthenticAMD", 12) == 0;
 
 	// load bitset with flags for function 0x00000001
 	if (nIds >= 1)
