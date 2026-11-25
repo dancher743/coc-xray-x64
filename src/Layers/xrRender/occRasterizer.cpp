@@ -94,12 +94,11 @@ void occRasterizer::propagade	()
 			
 			// Y2-connect
 			int	pos			= oy*occ_dim+ox;
+			// The 64x64 work area has a two-pixel border on every side
+			// in the 68x68 source buffers, so both neighbouring rows are valid.
 			int	pos_up		= pos-occ_dim;
-            if (pos_up < 0) pos_up = pos;
 			int	pos_down	= pos+occ_dim;
-            if (pos_down >= occ_dim_0*occ_dim_0) pos_down = pos;
-            int	pos_down2	= pos_down+occ_dim;
-            if (pos_down2 >= occ_dim_0*occ_dim_0) pos_down2 = pos_down;
+			int	pos_down2	= pos+2*occ_dim;
 
 			occTri* Tu1		= pFrame	[pos_up];
 			if (Tu1) {
