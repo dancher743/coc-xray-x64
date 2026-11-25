@@ -3,6 +3,8 @@
 
 #include "ParticleEffect.h"
 
+#include <cstring>
+
 #ifndef _EDITOR
 #include <xmmintrin.h>
 #include "../../xrCPU_Pipe/ttapi.h"
@@ -440,10 +442,15 @@ void ParticleRenderStream( LPVOID lpvParams )
 
 				 _mm_prefetch( (char*) &particles[i + 1] , _MM_HINT_NTA );
 
-				if ( angle != *((DWORD*)&m.rot.x) ) {
-					angle = *((DWORD*)&m.rot.x);
-					sina = std::sinf(*(float*)&angle);
-					cosa = std::cosf(*(float*)&angle);
+				DWORD rotation_bits;
+				std::memcpy(&rotation_bits, &m.rot.x, sizeof(rotation_bits));
+
+				if (angle != rotation_bits) {
+					angle = rotation_bits;
+					float rotation_angle;
+					std::memcpy(&rotation_angle, &angle, sizeof(rotation_angle));
+					sina = std::sinf(rotation_angle);
+					cosa = std::cosf(rotation_angle);
 				}
 
 				 _mm_prefetch( 64 + (char*) &particles[i + 1] , _MM_HINT_NTA );

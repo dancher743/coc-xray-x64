@@ -14,3 +14,4 @@ All notable changes to this project will be documented in this file.
 - Fixed detection of AMD processors
 - Fixed library paths in the x64 configurations for R1–R4
 - Fixed handling of 64-bit region sizes and memory traversal in ptmalloc3
+- Fixed an unsafe conversion of the bit representation of a float in `ParticleEffect.cpp`
