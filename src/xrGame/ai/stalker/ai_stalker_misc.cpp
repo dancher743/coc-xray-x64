@@ -11,6 +11,7 @@
 #include "ai_stalker_space.h"
 #include "../../bolt.h"
 #include "../../inventory.h"
+#include "../../script_game_object.h"
 #include "../../../xrServerEntities/character_info.h"
 #include "../../relation_registry.h"
 #include "../../memory_manager.h"
@@ -35,6 +36,18 @@ const u32 GRENADE_INTERVAL					= 0*1000;
 const float FRIENDLY_GRENADE_ALARM_DIST		= 5.f;
 const u32 DANGER_INFINITE_INTERVAL			= 60000000;
 const float DANGER_EXPLOSIVE_DISTANCE		= 10.f;
+
+bool CAI_Stalker::on_item_before_trade(CInventoryItem* item)
+{
+	if (!item)
+		return false;
+
+	luabind::functor<bool> funct;
+	if (ai().script_engine().functor("trade_manager.npc_on_item_before_trade", funct))
+		return funct(lua_game_object(), item->object().lua_game_object());
+
+	return true;
+}
 
 bool CAI_Stalker::useful		(const CItemManager *manager, const CGameObject *object) const
 {

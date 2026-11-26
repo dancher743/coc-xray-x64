@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 - Added outfit changing for NPCs
+- Added `npc_on_item_before_trade` callback
 
 ### Fixes
 - Fixed build errors

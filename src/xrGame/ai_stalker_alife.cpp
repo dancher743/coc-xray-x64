@@ -276,6 +276,9 @@ void CAI_Stalker::update_sell_info					()
 
 bool CAI_Stalker::can_sell							(CInventoryItem* item)
 {
+	if (!on_item_before_trade(item))
+		return false;
+
 	if (READ_IF_EXISTS(pSettings, r_bool, cNameSect(), "is_trader", false))
 		return				(tradable_item(item, ID()));
 
