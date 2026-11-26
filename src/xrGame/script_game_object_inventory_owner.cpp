@@ -352,10 +352,34 @@ void CScriptGameObject::DropItemAndTeleport(CScriptGameObject* pItem, Fvector po
 void CScriptGameObject::MakeItemActive(CScriptGameObject* pItem)
 {
     CInventoryOwner* owner = smart_cast<CInventoryOwner*>(&object());
-    CInventoryItem* item = smart_cast<CInventoryItem*>(&pItem->object());
-    u16 slot = item->BaseSlot();
+    CInventoryItem* item = pItem ? smart_cast<CInventoryItem*>(&pItem->object()) : NULL;
+    if (!owner || !item)
+        return;
 
+    u16 slot = item->BaseSlot();
     CInventoryItem* item_in_slot = owner->inventory().ItemFromSlot(slot);
+
+    // NPC outfit changes must be performed directly. Inventory UI events may
+    // still reference the old owner while ownership-transfer events are pending.
+    CAI_Stalker* stalker = smart_cast<CAI_Stalker*>(&object());
+    if (stalker && slot == OUTFIT_SLOT)
+    {
+        CInventory& inventory = stalker->inventory();
+        if (item->m_pInventory != &inventory || item->object().H_Parent() != stalker)
+            return;
+
+        if (item_in_slot == item)
+            return;
+
+        if (item_in_slot && !inventory.Ruck(item_in_slot, true))
+            return;
+
+        // This is an explicit script request, so bypass CanPutInSlot().
+        // CanPutInSlot() deliberately rejects automatic outfit placement in Take().
+        if (!inventory.Slot(slot, item, true, true) && item_in_slot)
+            inventory.Slot(slot, item_in_slot, true, true);
+        return;
+    }
 
     NET_Packet						P;
     if (item_in_slot)
@@ -369,9 +393,13 @@ void CScriptGameObject::MakeItemActive(CScriptGameObject* pItem)
     P.w_u16(slot);
     CGameObject::u_EventSend(P);
 
-    CGameObject::u_EventGen(P, GEG_PLAYER_ACTIVATE_SLOT, owner->object_id());
-    P.w_u16(slot);
-    CGameObject::u_EventSend(P);
+    // Outfit slots are equipment slots, not active hand/HUD slots.
+    if (slot != OUTFIT_SLOT)
+    {
+        CGameObject::u_EventGen(P, GEG_PLAYER_ACTIVATE_SLOT, owner->object_id());
+        P.w_u16(slot);
+        CGameObject::u_EventSend(P);
+    }
 }
 
 //передаче вещи из своего инвентаря в инвентарь партнера

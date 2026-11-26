@@ -14,6 +14,7 @@
 #include "../../ef_storage.h"
 #include "../../stalker_decision_space.h"
 #include "../../script_game_object.h"
+#include "../../CustomOutfit.h"
 #include "../../customzone.h"
 #include "../../../Include/xrRender/KinematicsAnimated.h"
 #include "../../agent_manager.h"
@@ -351,6 +352,10 @@ void CAI_Stalker::OnItemDrop			(CInventoryItem *inventory_item, bool just_before
 {
 	CObjectHandler::OnItemDrop	(inventory_item, just_before_destroy);
 
+	CCustomOutfit* outfit = smart_cast<CCustomOutfit*>(inventory_item);
+	if (outfit && inventory_item->CurrPlace() == eItemPlaceSlot && inventory_item->CurrSlot() == OUTFIT_SLOT)
+		RestoreDefaultVisualOutfit();
+
 	m_item_actuality			= false;
 	m_sell_info_actuality		= false;
 
@@ -370,10 +375,38 @@ void CAI_Stalker::OnItemDrop			(CInventoryItem *inventory_item, bool just_before
 
 void CAI_Stalker::update_best_item_info	()
 {
-	if(m_bTrading || !m_can_select_weapon)
+	if (m_bTrading)
 		return;
-	
+
+	// Outfit selection is controlled by Lua independently of weapon selection.
+	update_best_outfit_info_impl();
+
+	if (!m_can_select_weapon)
+		return;
+
 	update_best_item_info_impl();
+}
+
+void CAI_Stalker::update_best_outfit_info_impl()
+{
+	luabind::functor<CScriptGameObject*> funct;
+	if (!ai().script_engine().functor("ai_stalker.update_best_outfit", funct))
+		return;
+
+	CCustomOutfit* current_outfit = smart_cast<CCustomOutfit*>(inventory().ItemFromSlot(OUTFIT_SLOT));
+	CScriptGameObject* current_object = current_outfit ? current_outfit->CInventoryItem::object().lua_game_object() : NULL;
+	CScriptGameObject* GO = funct(lua_game_object(), current_object);
+	CCustomOutfit* best_outfit = GO ? smart_cast<CCustomOutfit*>(&GO->object()) : NULL;
+
+	// nil means that Lua does not want to change the current outfit.
+	if (!best_outfit || best_outfit == current_outfit)
+		return;
+
+	// Only equip an outfit that is still owned by this stalker.
+	if (best_outfit->m_pInventory != &inventory() || best_outfit->CInventoryItem::object().H_Parent() != this)
+		return;
+
+	lua_game_object()->MakeItemActive(best_outfit->CInventoryItem::object().lua_game_object());
 }
 
 void CAI_Stalker::update_best_item_info_impl()
@@ -384,11 +417,11 @@ void CAI_Stalker::update_best_item_info_impl()
 	{
 		CGameObject* cur_itm = smart_cast<CGameObject*>(m_best_item_to_kill);
 		CScriptGameObject* GO = funct(this->lua_game_object(),cur_itm ? cur_itm->lua_game_object() : NULL);
-		CInventoryItem* bw = GO ? smart_cast<CInventoryItem*>(&GO->object()): NULL;
+		CInventoryItem* bw = GO ? smart_cast<CInventoryItem*>(&GO->object()) : NULL;
 		if (bw)
-		{
-			m_best_item_to_kill = bw;
-			m_best_ammo = bw;
+			{
+				m_best_item_to_kill = bw;
+				m_best_ammo = bw;
 			return;
 		}
 	}

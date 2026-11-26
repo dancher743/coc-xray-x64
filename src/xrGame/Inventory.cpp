@@ -166,7 +166,12 @@ void CInventory::Take(CGameObject *pObj, bool bNotActivate, bool strict_placemen
 
 		break;
 	case eItemPlaceSlot:
-		result							= Slot(pIItem->m_ItemCurrPlace.slot_id, pIItem, bNotActivate, strict_placement); 
+		// Do not restore an NPC outfit directly into its equipment slot when
+		// the item is merely being received. Lua selects NPC outfits explicitly.
+		if (pIItem->m_ItemCurrPlace.slot_id == OUTFIT_SLOT && !m_pOwner->CanPutInSlot(pIItem, OUTFIT_SLOT))
+			pIItem->m_ItemCurrPlace.type = eItemPlaceUndefined;
+		else
+			result							= Slot(pIItem->m_ItemCurrPlace.slot_id, pIItem, bNotActivate, strict_placement);
 		if(!result)
 			pIItem->m_ItemCurrPlace.type = eItemPlaceUndefined;
 #ifdef DEBUG

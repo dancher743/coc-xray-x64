@@ -108,6 +108,7 @@ private:
 	// ALife
 private:
 	SBoneProtections*				m_boneHitProtection;
+	shared_str					m_DefaultVisualOutfit;
 
 	// weapon dispersion
 private:
@@ -254,7 +255,11 @@ public:
 	virtual	const MonsterSpace::SBoneRotation &head_orientation	() const;
 
 	//InventoryOwner stuff
-	virtual bool						CanPutInSlot			(PIItem item, u32 slot)		{return(slot!=OUTFIT_SLOT)&&(slot!=PDA_SLOT);};
+	virtual bool						CanPutInSlot			(PIItem item, u32 slot);
+	virtual shared_str				GetDefaultVisualOutfit	() const { return m_DefaultVisualOutfit; }
+	virtual void					SetDefaultVisualOutfit	(shared_str DefaultOutfit) { m_DefaultVisualOutfit = DefaultOutfit; }
+			void					SetOutfitVisual			(shared_str visual);
+			void					RestoreDefaultVisualOutfit();
 
 	//////////////////////////////////////////////////////////////////////////
 	// action/evaluators support functions
@@ -269,6 +274,7 @@ public:
 			bool						ready_to_kill			();
 			bool						ready_to_detour			();
 			void						update_best_item_info	();
+			void						update_best_outfit_info_impl();
 			void						update_best_item_info_impl();
 			void						ResetBoneProtections(LPCSTR imm_sect, LPCSTR bone_sect);
 	virtual float						GetWeaponAccuracy		() const;

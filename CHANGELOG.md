@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [1.0.0] - Unreleased
 
+### Features
+- Added outfit changing for NPCs
+
 ### Fixes
 - Fixed build errors
 - Fixed rain sound after reloading a save
