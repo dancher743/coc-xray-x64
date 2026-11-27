@@ -274,7 +274,6 @@ public:
 			bool						ready_to_kill			();
 			bool						ready_to_detour			();
 			void						update_best_item_info	();
-			void						update_best_outfit_info_impl();
 			void						update_best_item_info_impl();
 			void						ResetBoneProtections(LPCSTR imm_sect, LPCSTR bone_sect);
 	virtual float						GetWeaponAccuracy		() const;
