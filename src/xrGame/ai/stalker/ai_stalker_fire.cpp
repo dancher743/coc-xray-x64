@@ -14,7 +14,6 @@
 #include "../../ef_storage.h"
 #include "../../stalker_decision_space.h"
 #include "../../script_game_object.h"
-#include "../../CustomOutfit.h"
 #include "../../customzone.h"
 #include "../../../Include/xrRender/KinematicsAnimated.h"
 #include "../../agent_manager.h"
@@ -352,10 +351,6 @@ void CAI_Stalker::OnItemDrop			(CInventoryItem *inventory_item, bool just_before
 {
 	CObjectHandler::OnItemDrop	(inventory_item, just_before_destroy);
 
-	CCustomOutfit* outfit = smart_cast<CCustomOutfit*>(inventory_item);
-	if (outfit && inventory_item->CurrPlace() == eItemPlaceSlot && inventory_item->CurrSlot() == OUTFIT_SLOT)
-		RestoreDefaultVisualOutfit();
-
 	m_item_actuality			= false;
 	m_sell_info_actuality		= false;
 
@@ -389,11 +384,11 @@ void CAI_Stalker::update_best_item_info_impl()
 	{
 		CGameObject* cur_itm = smart_cast<CGameObject*>(m_best_item_to_kill);
 		CScriptGameObject* GO = funct(this->lua_game_object(),cur_itm ? cur_itm->lua_game_object() : NULL);
-		CInventoryItem* bw = GO ? smart_cast<CInventoryItem*>(&GO->object()) : NULL;
+		CInventoryItem* bw = GO ? smart_cast<CInventoryItem*>(&GO->object()): NULL;
 		if (bw)
-			{
-				m_best_item_to_kill = bw;
-				m_best_ammo = bw;
+		{
+			m_best_item_to_kill = bw;
+			m_best_ammo = bw;
 			return;
 		}
 	}

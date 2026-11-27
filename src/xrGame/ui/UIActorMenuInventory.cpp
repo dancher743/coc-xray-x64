@@ -80,7 +80,7 @@ void CUIActorMenu::SendEvent_Item2Slot(PIItem pItem, u16 recipient, u16 slot_id)
 		move_item_from_to			(pItem->parent_id(), recipient, pItem->object_id());
 
 	NET_Packet						P;
-	CGameObject::u_EventGen			(P, GEG_PLAYER_ITEM2SLOT, recipient);
+	CGameObject::u_EventGen			(P, GEG_PLAYER_ITEM2SLOT, pItem->object().H_Parent()->ID());
 	P.w_u16							(pItem->object().ID());
 	P.w_u16							(slot_id);
 	CGameObject::u_EventSend		(P);
@@ -94,7 +94,7 @@ void CUIActorMenu::SendEvent_Item2Belt(PIItem pItem, u16 recipient)
 		move_item_from_to			(pItem->parent_id(), recipient, pItem->object_id());
 
 	NET_Packet						P;
-	CGameObject::u_EventGen			(P, GEG_PLAYER_ITEM2BELT, recipient);
+	CGameObject::u_EventGen			(P, GEG_PLAYER_ITEM2BELT, pItem->object().H_Parent()->ID());
 	P.w_u16							(pItem->object().ID());
 	CGameObject::u_EventSend		(P);
 
@@ -107,7 +107,7 @@ void CUIActorMenu::SendEvent_Item2Ruck(PIItem pItem, u16 recipient)
 		move_item_from_to			(pItem->parent_id(), recipient, pItem->object_id());
 
 	NET_Packet						P;
-	CGameObject::u_EventGen			(P, GEG_PLAYER_ITEM2RUCK, recipient);
+	CGameObject::u_EventGen			(P, GEG_PLAYER_ITEM2RUCK, pItem->object().H_Parent()->ID());
 	P.w_u16							(pItem->object().ID());
 	CGameObject::u_EventSend		(P);
 

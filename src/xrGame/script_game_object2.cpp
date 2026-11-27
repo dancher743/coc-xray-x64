@@ -526,15 +526,15 @@ void CScriptGameObject::ResetBoneProtections(LPCSTR imm_sect, LPCSTR bone_sect)
 
 void CScriptGameObject::set_visual_name(LPCSTR visual)
 {
-	CAI_Stalker* stalker = smart_cast<CAI_Stalker*>(&object());
-	if (stalker)
-	{
-		stalker->SetDefaultVisualOutfit(visual);
-		stalker->SetOutfitVisual(visual);
-		return;
-	}
-
 	object().cNameVisual_set(visual);
+
+	/*
+	CAI_Stalker* stalker = smart_cast<CAI_Stalker*>(&object());
+	if (!stalker)
+		return;
+
+	stalker->ResetBoneProtections(NULL,NULL);
+	*/
 }
 
 LPCSTR CScriptGameObject::get_visual_name() const

@@ -24,7 +24,6 @@
 #include "../../xrserver.h"
 #include "../../xr_level_controller.h"
 #include "../../../Include/xrRender/Kinematics.h"
-#include "../../../Include/xrRender/KinematicsAnimated.h"
 #include "../../../xrServerEntities/character_info.h"
 #include "../../actor.h"
 #include "../../relation_registry.h"
@@ -89,7 +88,6 @@ CAI_Stalker::CAI_Stalker			() :
 	m_movement_manager				= 0;
 	m_group_behaviour				= true;
 	m_boneHitProtection				= NULL;
-	m_DefaultVisualOutfit			= NULL;
 	m_power_fx_factor				= flt_max;
 	m_wounded						= false;
 #ifdef DEBUG
@@ -97,19 +95,6 @@ CAI_Stalker::CAI_Stalker			() :
 	m_dbg_hud_draw					= false;
 #endif // DEBUG
 	m_registered_in_combat_on_migration	= false;
-}
-
-bool CAI_Stalker::CanPutInSlot(PIItem, u32 slot)
-{
-	if (slot == PDA_SLOT)
-		return false;
-
-	// Outfits stay in the NPC inventory until Lua explicitly selects one.
-	// CInventory::Take() uses CanPutInSlot() when choosing the initial placement.
-	if (slot == OUTFIT_SLOT)
-		return false;
-
-	return true;
 }
 
 CAI_Stalker::~CAI_Stalker			()
@@ -124,7 +109,6 @@ CAI_Stalker::~CAI_Stalker			()
 
 void CAI_Stalker::reinit			()
 {
-	m_DefaultVisualOutfit			= NULL;
 	CObjectHandler::reinit			(this);
 	sight().reinit					();
 	CCustomMonster::reinit			();
@@ -567,8 +551,7 @@ BOOL CAI_Stalker::net_Spawn			(CSE_Abstract* DC)
 
 	if (!CObjectHandler::net_Spawn(DC) || !inherited::net_Spawn(DC))
 		return						(FALSE);
-
-	m_DefaultVisualOutfit			= cNameVisual();
+	
 	set_money						(tpHuman->m_dwMoney, false);
 
 #ifdef DEBUG_MEMORY_MANAGER
@@ -1407,63 +1390,23 @@ bool CAI_Stalker::unlimited_ammo()
 	return infinite_ammo() && CObjectHandler::planner().object().g_Alive();
 }
 
-void CAI_Stalker::SetOutfitVisual(shared_str visual)
-{
-	if (!visual.size())
-		return;
-
-	if (cNameVisual() != visual)
-	{
-		cNameVisual_set(visual);
-
-		if (g_Alive() && smart_cast<IKinematicsAnimated*>(Visual()))
-		{
-			animation().reinit();
-			animation().reload();
-
-			if (character_physics_support())
-				character_physics_support()->in_ChangeVisual();
-		}
-	}
-
-	ResetBoneProtections(NULL, NULL);
-}
-
-void CAI_Stalker::RestoreDefaultVisualOutfit()
-{
-	if (m_DefaultVisualOutfit.size())
-		SetOutfitVisual(m_DefaultVisualOutfit);
-}
-
 void CAI_Stalker::ResetBoneProtections(LPCSTR imm_sect, LPCSTR bone_sect)
 {
-	IKinematics* pKinematics = smart_cast<IKinematics*>(Visual());
-	VERIFY(pKinematics);
-	if (!pKinematics)
-		return;
-
+	IKinematics* pKinematics = renderable.visual->dcast_PKinematics();
 	CInifile* ini = pKinematics->LL_UserData();
-	if (!imm_sect)
+	if (ini)
 	{
-		if (ini && ini->section_exist("immunities"))
-			imm_sect = ini->r_string("immunities", "immunities_sect");
-		else if (pSettings->line_exist(cNameSect(), "immunities_sect"))
-			imm_sect = pSettings->r_string(cNameSect(), "immunities_sect");
+		if (imm_sect || ini->section_exist("immunities"))
+		{
+			imm_sect = imm_sect ? imm_sect : ini->r_string("immunities", "immunities_sect");
+			conditions().LoadImmunities(imm_sect, pSettings);
+		}
+
+		if (bone_sect || ini->line_exist("bone_protection", "bones_protection_sect"))
+		{
+			//m_boneHitProtection = xr_new<SBoneProtections>();
+			bone_sect = ini->r_string("bone_protection", "bones_protection_sect");
+			m_boneHitProtection->reload(bone_sect, pKinematics);
+		}
 	}
-
-	if (imm_sect)
-		conditions().LoadImmunities(imm_sect, pSettings);
-
-	if (!bone_sect && ini && ini->line_exist("bone_protection", "bones_protection_sect"))
-		bone_sect = ini->r_string("bone_protection", "bones_protection_sect");
-
-	if (bone_sect)
-	{
-		if (!m_boneHitProtection)
-			m_boneHitProtection = xr_new<SBoneProtections>();
-
-		m_boneHitProtection->reload(bone_sect, pKinematics);
-	}
-	else
-		xr_delete(m_boneHitProtection);
 }

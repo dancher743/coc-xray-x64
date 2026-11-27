@@ -16,7 +16,6 @@
 #include "../Include/xrRender/Kinematics.h"
 #include "player_hud.h"
 #include "ActorHelmet.h"
-#include "ai/stalker/ai_stalker.h"
 
 
 CCustomOutfit::CCustomOutfit()
@@ -123,7 +122,7 @@ void CCustomOutfit::Load(LPCSTR section)
 void CCustomOutfit::ReloadBonesProtection()
 {
 	CObject* parent = H_Parent();
-	if (IsGameTypeSingle() && (!parent || smart_cast<CActor*>(parent)))
+	if(IsGameTypeSingle())
 		parent = smart_cast<CObject*>(Level().CurrentViewEntity());
 
 	if(parent && parent->Visual() && m_BonesProtectionSect.size())
@@ -231,26 +230,6 @@ void	CCustomOutfit::OnMoveToSlot		(const SInvItemPlace& prev)
 			if(pHelmet && !bIsHelmetAvaliable)
 				pActor->inventory().Ruck(pHelmet, false);
 		}
-		else
-		{
-			CAI_Stalker* pStalker = smart_cast<CAI_Stalker*>(H_Parent());
-			if (pStalker)
-			{
-				if (m_ActorVisual.size())
-				{
-					if (!pStalker->GetDefaultVisualOutfit().size())
-						pStalker->SetDefaultVisualOutfit(pStalker->cNameVisual());
-
-					pStalker->SetOutfitVisual(m_ActorVisual);
-				}
-
-				ReloadBonesProtection();
-
-				PIItem pHelmet = pStalker->inventory().ItemFromSlot(HELMET_SLOT);
-				if (pHelmet && !bIsHelmetAvaliable)
-					pStalker->inventory().Ruck(pHelmet, false);
-			}
-		}
 	}
 }
 
@@ -312,12 +291,6 @@ void	CCustomOutfit::OnMoveToRuck		(const SInvItemPlace& prev)
 			CTorch* pTorch = smart_cast<CTorch*>(pActor->inventory().ItemFromSlot(TORCH_SLOT));
 			if(pTorch && !bIsHelmetAvaliable)
 				pTorch->SwitchNightVision(false);
-		}
-		else
-		{
-			CAI_Stalker* pStalker = smart_cast<CAI_Stalker*>(H_Parent());
-			if (pStalker && prev.slot_id == OUTFIT_SLOT)
-				pStalker->RestoreDefaultVisualOutfit();
 		}
 	}
 };
