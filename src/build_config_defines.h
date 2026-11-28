@@ -35,7 +35,7 @@
 //-VISUAL
 
 // TWEAKS:
-	//#define ACTOR_FEEL_GRENADE							// When undefined it disables the grenade HUD indicator for thrown grenades
+	#define ACTOR_FEEL_GRENADE							// When undefined it disables the grenade HUD indicator for thrown grenades
 	//#define FP_DEATH										// first person death view (Note: It's fixed to position and does not follow corpse)
 	//#define DEAD_BODY_COLLISION								// restore collision with dead bodies (thanks malandrinus) (Note: Collides with AI and they can get stuck)
 	#define NEW_ANIMS										// use new animations. Please enclose any new animation addions with this define

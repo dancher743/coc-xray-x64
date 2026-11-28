@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 - Added `npc_on_item_before_trade` callback
+- Enabled the grenade HUD indicator for thrown grenades
 
 ### Fixes
 - Fixed build errors
