@@ -67,9 +67,17 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <NMakeBuildCommandLine>msvcbuild.bat $(PlatformShortName)</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>msvcbuild.bat $(PlatformShortName)</NMakeReBuildCommandLine>
-    <NMakeOutput>lua51.dll</NMakeOutput>
+    <NMakeBuildCommandLine>msvcbuild.bat $(PlatformShortName)
+if not exist "$(xrLibDir)" mkdir "$(xrLibDir)"
+if not exist "$(xrBinDir)" mkdir "$(xrBinDir)"
+copy /Y "$(xr3rdPartyDir)luajit-2\src\lua51.lib" "$(xrLibDir)lua51.lib"
+copy /Y "$(xr3rdPartyDir)luajit-2\src\lua51.dll" "$(xrBinDir)lua51.dll"</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>msvcbuild.bat $(PlatformShortName)
+if not exist "$(xrLibDir)" mkdir "$(xrLibDir)"
+if not exist "$(xrBinDir)" mkdir "$(xrBinDir)"
+copy /Y "$(xr3rdPartyDir)luajit-2\src\lua51.lib" "$(xrLibDir)lua51.lib"
+copy /Y "$(xr3rdPartyDir)luajit-2\src\lua51.dll" "$(xrBinDir)lua51.dll"</NMakeReBuildCommandLine>
+    <NMakeOutput>$(xrLibDir)lua51.lib</NMakeOutput>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <NMakePreprocessorDefinitions>WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>

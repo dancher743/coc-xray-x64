@@ -9,7 +9,6 @@ All notable changes to this project will be documented in this file.
 - Enabled the grenade HUD indicator for thrown grenades
 
 ### Fixes
-- Fixed build errors
 - Fixed rain sound after reloading a save
 - Fixed Cyrillic character input in text controls
 - Fixed occlusion culler buffer boundaries
